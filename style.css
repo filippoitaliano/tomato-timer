@@ -5,6 +5,7 @@
   --bg-dot-color: #7CD4BD;
   --btn-color: #04AEA6;
   --dialog-bg-color: #F5F7E2;
+  --soft-grey: #f7f2f2;
   --dialog-text-color: #855C25;
 }
 
@@ -56,22 +57,6 @@ button {
   color: #F3FBFE;
 }
 
-.settings-hide-button {
-  border: 4px solid #F7F8E0;
-  color: #F7F8E0;
-  background-color: #8B7C69;
-  width: 34px;
-  height: 30px;
-  line-height: 8px;
-  text-align: center;
-  padding: 0 8px;
-  position: absolute;
-  right: 10px;
-  top: -14px;
-  border-radius: 8px;
-  font-size: 28px;
-}
-
 .dialog .settings-form {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -96,8 +81,8 @@ button {
 
 .settings-form-save-button {
   border-radius: 30px;
-  width: 60px;
-  height: 40px;
+  width: 85px;
+  height: 30px;
   align-self: end;
   justify-self: end;
 }
@@ -136,9 +121,9 @@ button {
 
 .clock-controls {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   column-gap: 15px;
-  max-width: 600px;
+  max-width: 200px;
   margin: 0 auto;
 }
 
@@ -146,24 +131,24 @@ button {
   justify-self: center;
   align-items: center;
   border-radius: 30px;
-  width: 80px;
-  height: 50px;
+  width: 60px;
+  height: 30px;
 }
 
 .analog-timer-circle {
   height: 300px;
   width: 300px;
   border-radius: 100%;
-  border: solid 2px grey;
+  border: solid 10px var(--soft-grey);
   position: relative;
 }
 
 #analog-timer-needle {
-  height: 150px;
-  width: 1px;
-  background-color: red;
+  height: 130px;
+  width: 2px;
+  background-color: var(--btn-color);
   position: absolute;
-  top: 0;
+  top: 20px;
   right: 150px;
   transform-origin: 50% 100%;
 }
