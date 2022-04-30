@@ -4,7 +4,7 @@
   <head>
     <title>Tomato timer</title>
     <link rel="stylesheet" href="style.css"/>
-    <script type="javascript" src="logic.js"></script>
+    <script type="text/javascript" src="logic.js"></script>
   </head>
 
   <body>
@@ -55,17 +55,17 @@
       <div class="clock-title">
         Timer
       </div>
-      <div class="clock-wrapper">
-        <div class="clock-digital-time">
-          45:00
+      <div class="analog-timer-wrapper">
+        <div class="analog-timer-circle">
+          <div class="analog-timer-needle"/>
         </div>
       </div>
       <div class="clock-controls">
         <button class="clock-control-button">
           Pause
         </button>
-        <button class="clock-control-button">
-          Restart
+        <button class="clock-control-button" onclick="startTimerNeedleMovement(2)">
+          Start 2 minutes timer
         </button>
         <button class="clock-control-button">
           Stop

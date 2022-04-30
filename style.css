@@ -120,8 +120,9 @@ button {
   align-items: center;
 }
 
-.clock-wrapper {
+.clock-wrapper, .analog-timer-wrapper {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 75%;
@@ -147,4 +148,22 @@ button {
   border-radius: 30px;
   width: 80px;
   height: 50px;
+}
+
+.analog-timer-circle {
+  height: 300px;
+  width: 300px;
+  border-radius: 100%;
+  border: solid 2px grey;
+  position: relative;
+}
+
+.analog-timer-needle {
+  height: 150px;
+  width: 1px;
+  background-color: red;
+  position: absolute;
+  top: 0;
+  right: 150px;
+  transform-origin: 50% 100%;
 }
