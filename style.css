@@ -158,7 +158,7 @@ button {
   position: relative;
 }
 
-.analog-timer-needle {
+#analog-timer-needle {
   height: 150px;
   width: 1px;
   background-color: red;

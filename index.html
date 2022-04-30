@@ -26,7 +26,7 @@
             Duration
           </div>
           <div class="settings-form-control-input-wrapper">
-            <input type="text"/>
+            <input type="number" id="timer-duration-input"/>
           </div>
         </div>
         <div class="settings-form-control">
@@ -34,7 +34,7 @@
             Break
           </div>
           <div class="settings-form-control-input-wrapper">
-            <input type="text"/>
+            <input type="number" id="break-duration-input" />
           </div>
         </div>
         <div class="settings-form-control">
@@ -42,7 +42,7 @@
             Times
           </div>
           <div class="settings-form-control-input-wrapper">
-            <input type="text"/>
+            <input type="number" id="timer-times-input" />
           </div>
         </div>
         <button class="settings-form-save-button">
@@ -57,18 +57,14 @@
       </div>
       <div class="analog-timer-wrapper">
         <div class="analog-timer-circle">
-          <div class="analog-timer-needle"/>
+          <div id="analog-timer-needle"/>
         </div>
       </div>
       <div class="clock-controls">
-        <button class="clock-control-button">
-          Pause
-        </button>
-        <button class="clock-control-button" onclick="startTimerNeedleMovement(2)">
-          Start 2 minutes timer
-        </button>
-        <button class="clock-control-button">
-          Stop
+        <button class="clock-control-button" onclick="startTimer()">
+          Start
+        <button class="clock-control-button" onclick="abortTimer()">
+          Abort
         </button>
       </div>
     </div>
