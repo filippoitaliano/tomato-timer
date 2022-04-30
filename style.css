@@ -1,0 +1,150 @@
+@import url('https://fonts.googleapis.com/css?family=Raleway');
+
+:root {
+  --bg-color: #6ECCBC;
+  --bg-dot-color: #7CD4BD;
+  --btn-color: #04AEA6;
+  --dialog-bg-color: #F5F7E2;
+  --dialog-text-color: #855C25;
+}
+
+body {
+  background: var(--bg-color);
+  background-image: radial-gradient(var(--bg-dot-color) 20%, transparent 0), radial-gradient(var(--bg-dot-color) 20%, transparent 0);
+  background-size: 48px 48px;
+  background-position: 0 0, 24px 24px;
+
+  font-family: 'Raleway', sans-serif;
+  font-weight: 800;
+  color: var(--dialog-text-color);
+}
+
+button {
+  border: 0;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 800;
+  background-color: var(--btn-color);
+  color: white;
+}
+
+.dialog {
+  background-color: var(--dialog-bg-color);
+  padding: 30px 20px;
+  border-radius: 30px;
+  box-shadow: 1.5px 1.5px 1.5px lightgrey;
+  position: relative;
+  max-width: 600px;
+  margin: 40px auto;
+}
+
+.dialog .settings-description {
+  font-size: 0.8rem;
+  letter-spacing: 0.2px;
+  line-height: 1.8rem;
+  margin-bottom: 30px;
+}
+
+.dialog .settings-badge {
+  background-color: #F49800;
+  width: auto;
+  text-align: center;
+  padding: 5px 8px;
+  position: absolute;
+  left: 10px;
+  top: -10px;
+  border-radius: 30px;
+  color: #F3FBFE;
+}
+
+.settings-hide-button {
+  border: 4px solid #F7F8E0;
+  color: #F7F8E0;
+  background-color: #8B7C69;
+  width: 34px;
+  height: 30px;
+  line-height: 8px;
+  text-align: center;
+  padding: 0 8px;
+  position: absolute;
+  right: 10px;
+  top: -14px;
+  border-radius: 8px;
+  font-size: 28px;
+}
+
+.dialog .settings-form {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 15px;
+}
+
+.settings-form-control-label {
+  position: relative;
+  left: 8px;
+  margin-bottom: 10px;
+  color: var(--dialog-text-color);
+}
+
+.settings-form-control-input-wrapper input {
+  background-color: #ede8d3;
+  border: 0;
+  padding: 15px;
+  width: 80px;
+  border-radius: 30px;
+  text-align: center;
+}
+
+.settings-form-save-button {
+  border-radius: 30px;
+  width: 60px;
+  height: 40px;
+  align-self: end;
+  justify-self: end;
+}
+
+.main-content {
+  max-width: 800px;
+  background-color: white;
+  margin: 40px auto;
+  height: 600px;
+  border-radius: 30px;
+  box-shadow: 1.5px 1.5px 1.5px lightgrey;
+}
+
+.clock-title {
+  background-color: var(--dialog-bg-color);
+  border-radius: 30px 30px 0 0;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.clock-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 75%;
+  position: relative;
+}
+
+.clock-digital-time {
+  font-size: 100px;
+  color: var(--dialog-text-color);
+}
+
+.clock-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 15px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.clock-control-button {
+  justify-self: center;
+  align-items: center;
+  border-radius: 30px;
+  width: 80px;
+  height: 50px;
+}
