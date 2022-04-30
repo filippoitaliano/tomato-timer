@@ -8,6 +8,9 @@ let timerIntervalId = null;
 let analogTimerNeedle = null;
 let analogTimerDegRotation = 0;
 
+let settingsDialogContent = null;
+let settingsDialogClosedContent = null;
+
 function startTimer() {
   let timerSeconds = timerDuration * 60;
   timerIntervalId = setInterval(() => {
@@ -41,6 +44,16 @@ function resetAnalogTimerNeedle() {
   rotateAnalogTimerNeedle(0)
 }
 
+function confirmSettingsForm() {
+  settingsDialogContent.style.display = 'none';
+  settingsDialogClosedContent.style.display = 'flex';
+}
+
+function showSettingsForm() {
+  settingsDialogContent.style.display = 'block';
+  settingsDialogClosedContent.style.display = 'none';
+}
+
 function bindSettingsToForm() {
   const timerDurationInput = document.getElementById('timer-duration-input');
   timerDurationInput.value = timerDuration;
@@ -59,9 +72,15 @@ function getAnalogTimerNeedleRef() {
   analogTimerNeedle = document.getElementById('analog-timer-needle');
 }
 
+function getSettingsDialogSectionsRef() {
+  settingsDialogContent = document.getElementById('settings-dialog-content');
+  settingsDialogClosedContent = document.getElementById('settings-dialog-closed-content');
+}
+
 function appInit() {
   bindSettingsToForm();
   getAnalogTimerNeedleRef();
+  getSettingsDialogSectionsRef();
 }
 
 document.addEventListener('DOMContentLoaded', appInit, false);

@@ -12,38 +12,47 @@
       <div class="settings-badge">
         Filippo
       </div>
-      <p class="settings-description">
-        Welcome to the cutest tomato timer app in the world. Take your time to set up the timings and have fun doing what you love to do!
-      </p>
-      <div class="settings-form">
-        <div class="settings-form-control">
-          <div class="settings-form-control-label">
-            Duration
+      <div id="settings-dialog-content">
+        <p class="settings-description">
+          Welcome to the cutest tomato timer app. Take your time to set up the timings!
+        </p>
+        <div class="settings-form">
+          <div class="settings-form-control">
+            <div class="settings-form-control-label">
+              Duration
+            </div>
+            <div class="settings-form-control-input-wrapper">
+              <input type="number" id="timer-duration-input"/>
+            </div>
           </div>
-          <div class="settings-form-control-input-wrapper">
-            <input type="number" id="timer-duration-input"/>
+          <div class="settings-form-control">
+            <div class="settings-form-control-label">
+              Break
+            </div>
+            <div class="settings-form-control-input-wrapper">
+              <input type="number" id="break-duration-input" />
+            </div>
           </div>
+          <div class="settings-form-control">
+            <div class="settings-form-control-label">
+              Times
+            </div>
+            <div class="settings-form-control-input-wrapper">
+              <input type="number" id="timer-times-input" />
+            </div>
+          </div>
+            <button class="settings-form-save-button" onclick="confirmSettingsForm()">
+              That's ok!
+            </button>
         </div>
-        <div class="settings-form-control">
-          <div class="settings-form-control-label">
-            Break
-          </div>
-          <div class="settings-form-control-input-wrapper">
-            <input type="number" id="break-duration-input" />
-          </div>
-        </div>
-        <div class="settings-form-control">
-          <div class="settings-form-control-label">
-            Times
-          </div>
-          <div class="settings-form-control-input-wrapper">
-            <input type="number" id="timer-times-input" />
-          </div>
-        </div>
-          <button class="settings-form-save-button">
-            That's ok!
-          </button>
-        </div>
+      </div>
+      <div id="settings-dialog-closed-content">
+        <p class="settings-description">
+          Good luck and have fun!
+        </p>
+        <button class="settings-dialog-change-settings-button" onclick="showSettingsForm()">
+          Change settings
+        </button>
       </div>
     </div>
 
