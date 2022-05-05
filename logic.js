@@ -10,6 +10,8 @@ let tomatoSessionTimes = null;
 let analogTimerNeedle = null;
 let analogTimerDegRotation = 0;
 
+let notificationSound = null;
+
 let settingsDialogContent = null;
 let settingsDialogClosedContent = null;
 
@@ -18,8 +20,10 @@ async function startTomatoSession() {
   while (tomatoSessionTimes !== 0) {
     tomatoSessionTimes -= 1;
     await startTimer(workDuration);
+    notificationSound.play();
     if (tomatoSessionTimes !== 0) {
       await startTimer(breakDuration);
+      notificationSound.play();
     }
   }
 }
@@ -93,10 +97,16 @@ function getSettingsDialogSectionsRef() {
   settingsDialogClosedContent = document.getElementById('settings-dialog-closed-content');
 }
 
+function loadNotificationSound() {
+  notificationSound = new Audio('./ding.mp3');
+  notificationSound.volume = 0.50;
+}
+
 function appInit() {
   bindSettingsToForm();
   getAnalogTimerNeedleRef();
   getSettingsDialogSectionsRef();
+  loadNotificationSound();
 }
 
 document.addEventListener('DOMContentLoaded', appInit, false);
