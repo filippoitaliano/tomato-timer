@@ -1,9 +1,11 @@
 
-let timerDuration = 25;
+let workDuration = 25;
+let workTimes = 3;
 let breakDuration = 5;
-let timerTimes = 3;
 
-let timerIntervalId = null;
+let currentTimerIntervalId = null;
+
+let tomatoSessionTimes = null;
 
 let analogTimerNeedle = null;
 let analogTimerDegRotation = 0;
@@ -11,24 +13,38 @@ let analogTimerDegRotation = 0;
 let settingsDialogContent = null;
 let settingsDialogClosedContent = null;
 
-function startTimer() {
-  let timerSeconds = timerDuration * 60;
-  timerIntervalId = setInterval(() => {
-    if (timerSeconds === 0) {
-      clearInterval(timerIntervalId);
-      timerIntervalId = null;
-      resetAnalogTimerNeedle()
-    } else {
-      timerSeconds -= 1;
-      rotateAnalogTimerNeedle();
+async function startTomatoSession() {
+  tomatoSessionTimes = workTimes;
+  while (tomatoSessionTimes !== 0) {
+    tomatoSessionTimes -= 1;
+    await startTimer(workDuration);
+    if (tomatoSessionTimes !== 0) {
+      await startTimer(breakDuration);
     }
-  }, 1000);
+  }
 }
 
-function abortTimer() {
-  clearInterval(timerIntervalId);
-  timerIntervalId = null;
+function abortTomatoSession() {
+  clearInterval(currentTimerIntervalId);
+  currentTimerIntervalId = null;
   resetAnalogTimerNeedle();
+}
+
+async function startTimer(currentTimerDuration) {
+  return new Promise((resolve) => {
+    let timerSeconds = currentTimerDuration * 60;
+    currentTimerIntervalId = setInterval(() => {
+      if (timerSeconds === 0) {
+        clearInterval(currentTimerIntervalId);
+        currentTimerIntervalId = null;
+        resetAnalogTimerNeedle()
+        resolve();
+      } else {
+        timerSeconds -= 1;
+        rotateAnalogTimerNeedle();
+      }
+    }, 1000);
+  })
 }
 
 function rotateAnalogTimerNeedle(degRotation = null) {
@@ -55,17 +71,17 @@ function showSettingsForm() {
 }
 
 function bindSettingsToForm() {
-  const timerDurationInput = document.getElementById('timer-duration-input');
-  timerDurationInput.value = timerDuration;
-  timerDurationInput.onchange = (event) => { timerDuration = event.target.value; };
+  const workDurationInput = document.getElementById('work-duration-input');
+  workDurationInput.value = workDuration;
+  workDurationInput.onchange = (event) => { workDuration = event.target.value; };
 
   const breakDurationInput = document.getElementById('break-duration-input');
   breakDurationInput.value = breakDuration;
   breakDurationInput.onchange = (event) => { breakDuration = event.target.value; };
 
-  const timerTimesInput = document.getElementById('timer-times-input');
-  timerTimesInput.value = timerTimes;
-  timerTimesInput.onchange = (event) => { timerTimes = event.target.value; };
+  const workTimesInput = document.getElementById('work-times-input');
+  workTimesInput.value = workTimes;
+  workTimesInput.onchange = (event) => { workTimes = event.target.value; };
 }
 
 function getAnalogTimerNeedleRef() {
