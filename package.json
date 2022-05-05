@@ -1,0 +1,11 @@
+{
+  "name": "tomato-timer",
+  "version": "0.0.1",
+  "scripts": {
+    "builder": "uglifyjs src/logic.js -c --mangle toplevel -o dist/logic.js",
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "uglify-js": "^3.15.4"
+  }
+}
