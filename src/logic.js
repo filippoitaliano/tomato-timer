@@ -8,7 +8,11 @@ let currentTimerIntervalId = null;
 let tomatoSessionTimes = null;
 
 let analogTimerNeedle = null;
-let analogTimerDegRotation = 0;
+let analogTimerNeedleDegRotation = 0;
+
+let analogTimerCompletion = null;
+let analogTimerCompletionStepSize = null;
+let analogTimerCompletionDegPosition = 0;
 
 let notificationSound = null;
 
@@ -17,10 +21,12 @@ let settingsDialogClosedContent = null;
 
 async function startTomatoSession() {
   tomatoSessionTimes = workTimes;
+  setupAnalogTimerCompletion();
   while (tomatoSessionTimes !== 0) {
     tomatoSessionTimes -= 1;
     await startTimer(workDuration);
     notificationSound.play();
+    advanceAnalogTimerCompletion();
     if (tomatoSessionTimes !== 0) {
       await startTimer(breakDuration);
       notificationSound.play();
@@ -32,6 +38,7 @@ function abortTomatoSession() {
   clearInterval(currentTimerIntervalId);
   currentTimerIntervalId = null;
   resetAnalogTimerNeedle();
+  resetTomatoTimerCompletion();
 }
 
 async function startTimer(currentTimerDuration) {
@@ -53,15 +60,31 @@ async function startTimer(currentTimerDuration) {
 
 function rotateAnalogTimerNeedle(degRotation = null) {
   if (degRotation != null) {
-    analogTimerDegRotation = 0;
+    analogTimerNeedleDegRotation = 0;
   } else {
-    analogTimerDegRotation = (analogTimerDegRotation + 6) % 360;
+    analogTimerNeedleDegRotation = (analogTimerNeedleDegRotation + 6) % 360;
   }
-  analogTimerNeedle.style.transform = `rotate(${analogTimerDegRotation}deg)`;
+  analogTimerNeedle.style.transform = `rotate(${analogTimerNeedleDegRotation}deg)`;
 }
 
 function resetAnalogTimerNeedle() {
   rotateAnalogTimerNeedle(0)
+}
+
+function setupAnalogTimerCompletion() {
+  analogTimerCompletionStepSize = 360 / workTimes;
+  console.log({ analogTimerCompletionStepSize })
+}
+
+function advanceAnalogTimerCompletion() {
+  analogTimerCompletionDegPosition += analogTimerCompletionStepSize;
+  analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), ${analogTimerCompletionDegPosition}deg, transparent ${analogTimerCompletionDegPosition}deg 360deg)`;
+}
+
+function resetTomatoTimerCompletion() {
+  analogTimerCompletionDegPosition = 0;
+  analogTimerCompletionStepSize = null;
+  analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), 0deg, transparent 0deg 360deg)`;
 }
 
 function confirmSettingsForm() {
@@ -88,8 +111,9 @@ function bindSettingsToForm() {
   workTimesInput.onchange = (event) => { workTimes = event.target.value; };
 }
 
-function getAnalogTimerNeedleRef() {
+function getAnalogTimerRefs() {
   analogTimerNeedle = document.getElementById('analog-timer-needle');
+  analogTimerCompletion = document.getElementById('analog-timer-completion');
 }
 
 function getSettingsDialogSectionsRef() {
@@ -104,7 +128,7 @@ function loadNotificationSound() {
 
 function appInit() {
   bindSettingsToForm();
-  getAnalogTimerNeedleRef();
+  getAnalogTimerRefs();
   getSettingsDialogSectionsRef();
   loadNotificationSound();
 }
