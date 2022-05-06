@@ -3,6 +3,21 @@ let workDuration = 25;
 let workTimes = 3;
 let breakDuration = 5;
 
+function setWorkDuration(value) {
+  workDuration = value;
+  localStorage.setItem('workDuration', value);
+}
+
+function setWorkTimes(value) {
+  workDuration = value;
+  localStorage.setItem('workTimes', value);
+}
+
+function setBreakDuration(value) {
+  workDuration = value;
+  localStorage.setItem('breakDuration', value);
+}
+
 let currentTimerIntervalId = null;
 
 let tomatoSessionTimes = null;
@@ -97,18 +112,33 @@ function showSettingsForm() {
   settingsDialogClosedContent.style.display = 'none';
 }
 
+function loadLocalSettings() {
+  const localWorkDuration = localStorage.getItem('workDuration');
+  if (localWorkDuration) {
+    workDuration = localWorkDuration;
+  }
+  const localWorkTimes = localStorage.getItem('workTimes');
+  if (localWorkTimes) {
+    workTimes = localWorkTimes;
+  }
+  const localBreakDuration = localStorage.getItem('breakDuration');
+  if (localBreakDuration) {
+    workDuration = localBreakDuration;
+  }
+}
+
 function bindSettingsToForm() {
   const workDurationInput = document.getElementById('work-duration-input');
   workDurationInput.value = workDuration;
-  workDurationInput.onchange = (event) => { workDuration = event.target.value; };
-
-  const breakDurationInput = document.getElementById('break-duration-input');
-  breakDurationInput.value = breakDuration;
-  breakDurationInput.onchange = (event) => { breakDuration = event.target.value; };
+  workDurationInput.onchange = (event) => { setWorkDuration(event.target.value); };
 
   const workTimesInput = document.getElementById('work-times-input');
   workTimesInput.value = workTimes;
-  workTimesInput.onchange = (event) => { workTimes = event.target.value; };
+  workTimesInput.onchange = (event) => { setWorkTimes(event.target.value); };
+
+  const breakDurationInput = document.getElementById('break-duration-input');
+  breakDurationInput.value = breakDuration;
+  breakDurationInput.onchange = (event) => { setBreakDuration(event.target.value); };
 }
 
 function getAnalogTimerRefs() {
@@ -127,6 +157,7 @@ function loadNotificationSound() {
 }
 
 function appInit() {
+  loadLocalSettings();
   bindSettingsToForm();
   getAnalogTimerRefs();
   getSettingsDialogSectionsRef();
