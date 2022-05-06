@@ -36,13 +36,13 @@ let settingsDialogClosedContent = null;
 
 async function startTomatoSession() {
   tomatoSessionTimes = workTimes;
-  setupAnalogTimerCompletion();
   while (tomatoSessionTimes !== 0) {
     tomatoSessionTimes -= 1;
+    setupAnalogTimerCurrentPhaseCompletion(workDuration);
     await startTimer(workDuration);
     notificationSound.play();
-    advanceAnalogTimerCompletion();
     if (tomatoSessionTimes !== 0) {
+      setupAnalogTimerCurrentPhaseCompletion(breakDuration);
       await startTimer(breakDuration);
       notificationSound.play();
     }
@@ -53,7 +53,7 @@ function abortTomatoSession() {
   clearInterval(currentTimerIntervalId);
   currentTimerIntervalId = null;
   resetAnalogTimerNeedle();
-  resetTomatoTimerCompletion();
+  resetAnalogTimerCompletion();
 }
 
 async function startTimer(currentTimerDuration) {
@@ -68,6 +68,7 @@ async function startTimer(currentTimerDuration) {
       } else {
         timerSeconds -= 1;
         rotateAnalogTimerNeedle();
+        rotateAnalogTimerCompletion();
       }
     }, 1000);
   })
@@ -86,17 +87,18 @@ function resetAnalogTimerNeedle() {
   rotateAnalogTimerNeedle(0)
 }
 
-function setupAnalogTimerCompletion() {
-  analogTimerCompletionStepSize = 360 / workTimes;
-  console.log({ analogTimerCompletionStepSize })
+function setupAnalogTimerCurrentPhaseCompletion(currentTimerDuration) {
+  let timerSeconds = currentTimerDuration * 60;
+  const analogTimerCompletionPhaseSize = 360 / ((workTimes * 2) - 1);
+  analogTimerCompletionStepSize = analogTimerCompletionPhaseSize / timerSeconds;
 }
 
-function advanceAnalogTimerCompletion() {
+function rotateAnalogTimerCompletion() {
   analogTimerCompletionDegPosition += analogTimerCompletionStepSize;
   analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), ${analogTimerCompletionDegPosition}deg, transparent ${analogTimerCompletionDegPosition}deg 360deg)`;
 }
 
-function resetTomatoTimerCompletion() {
+function resetAnalogTimerCompletion() {
   analogTimerCompletionDegPosition = 0;
   analogTimerCompletionStepSize = null;
   analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), 0deg, transparent 0deg 360deg)`;
