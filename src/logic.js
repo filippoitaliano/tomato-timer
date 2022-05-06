@@ -9,12 +9,12 @@ function setWorkDuration(value) {
 }
 
 function setWorkTimes(value) {
-  workDuration = value;
+  workTimes = value;
   localStorage.setItem('workTimes', value);
 }
 
 function setBreakDuration(value) {
-  workDuration = value;
+  breakDuration = value;
   localStorage.setItem('breakDuration', value);
 }
 
