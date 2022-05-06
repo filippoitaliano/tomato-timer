@@ -1,14 +1,29 @@
 const fs = require('fs');
-const UglifyJS = require("uglify-js");
+const UglifyJs = require("uglify-js");
+const HtmlParser = require('node-html-parser');
 
-if (!fs.existsSync('./dist')){
-  fs.mkdirSync('./dist');
-}
+if (!fs.existsSync('./dist')) fs.mkdirSync('./dist')
 
 fs.copyFile('./src/ding.mp3', './dist/ding.mp3', console.error);
-fs.copyFile('./src/index.html', './dist/index.html', console.error);
 fs.copyFile('./src/style.css', './dist/style.css', console.error);
 
-const code = fs.readFileSync("./src/logic.js", "utf8");
-const minifiedCode = UglifyJS.minify(code, { mangle: { toplevel: false } }).code;
-fs.writeFileSync("./dist/logic.js", minifiedCode);
+const jsCode = fs.readFileSync("./src/logic.js", "utf8");
+const uglifyOptions = { mangle: { toplevel: true }, nameCache: {} };
+const uglifyResult = UglifyJs.minify(jsCode, uglifyOptions);
+
+fs.writeFileSync("./dist/logic.js", uglifyResult.code);
+
+const mangleMap = uglifyOptions.nameCache.vars.props;
+
+const htmlCode = fs.readFileSync('./src/index.html').toString();
+const parsedHtml = HtmlParser.parse(htmlCode);
+
+const elementsWithJs = parsedHtml.querySelectorAll('.wjs');
+elementsWithJs.forEach((element) => {
+  const attributeValue = element.getAttribute('onclick');
+  const identifier = `$${attributeValue.substring(0, attributeValue.length - 2)}`;
+  const mangledIdentifier = `${mangleMap[identifier]}()`;
+  element.setAttribute('onclick', mangledIdentifier);
+});
+
+fs.writeFileSync('./dist/index.html', parsedHtml.toString());
