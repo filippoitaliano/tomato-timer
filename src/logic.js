@@ -125,7 +125,7 @@ function loadLocalSettings() {
   }
   const localBreakDuration = localStorage.getItem('breakDuration');
   if (localBreakDuration) {
-    workDuration = localBreakDuration;
+    breakDuration = localBreakDuration;
   }
 }
 
