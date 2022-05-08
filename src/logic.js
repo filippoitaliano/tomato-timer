@@ -38,15 +38,22 @@ let settingsDialogContent = null;
 let settingsDialogClosedContent = null;
 
 async function startTomatoSession() {
+  requestNotificationsPermission();
   tomatoSessionTimes = workTimes;
   setupAnalogTimerPhases();
   while (tomatoSessionTimes !== 0) {
     tomatoSessionTimes -= 1;
     await startTimer(workDuration, 'work');
     notificationSound.play();
+    new Notification('Time to have a break!');
     if (tomatoSessionTimes !== 0) {
       await startTimer(breakDuration, 'break');
       notificationSound.play();
+      if (tomatoSessionTimes === 0) {
+        new Notification ('Good job, you finished your pomodoro!')
+      } else {
+        new Notification ('Let\'s get back to work.')
+      }
     }
   }
 }
@@ -186,6 +193,13 @@ function getSettingsDialogSectionsRef() {
 function loadNotificationSound() {
   notificationSound = new Audio('./ding.mp3');
   notificationSound.volume = 0.50;
+}
+
+function requestNotificationsPermission() {
+  if (Notification.permission === 'granted') return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 }
 
 function appInit() {
