@@ -22,12 +22,15 @@ let currentTimerIntervalId = null;
 
 let tomatoSessionTimes = null;
 
+let analogTimerCircle = null;
 let analogTimerNeedle = null;
 let analogTimerNeedleDegRotation = 0;
 
 let analogTimerCompletion = null;
-let analogTimerCompletionStepSize = null;
+let analogTimerWorkPhasesStepSize = null;
+let analogTimerBreakPhasesStepSize = null;
 let analogTimerCompletionDegPosition = 0;
+let analogTimerPhasesSeparators = [];
 
 let notificationSound = null;
 
@@ -36,14 +39,13 @@ let settingsDialogClosedContent = null;
 
 async function startTomatoSession() {
   tomatoSessionTimes = workTimes;
+  setupAnalogTimerPhases();
   while (tomatoSessionTimes !== 0) {
     tomatoSessionTimes -= 1;
-    setupAnalogTimerCurrentPhaseCompletion(workDuration);
-    await startTimer(workDuration);
+    await startTimer(workDuration, 'work');
     notificationSound.play();
     if (tomatoSessionTimes !== 0) {
-      setupAnalogTimerCurrentPhaseCompletion(breakDuration);
-      await startTimer(breakDuration);
+      await startTimer(breakDuration, 'break');
       notificationSound.play();
     }
   }
@@ -54,9 +56,10 @@ function abortTomatoSession() {
   currentTimerIntervalId = null;
   resetAnalogTimerNeedle();
   resetAnalogTimerCompletion();
+  cleanupAnalogTimerPhases();
 }
 
-async function startTimer(currentTimerDuration) {
+async function startTimer(currentTimerDuration, currentTimerType) {
   return new Promise((resolve) => {
     let timerSeconds = currentTimerDuration * 60;
     currentTimerIntervalId = setInterval(() => {
@@ -68,9 +71,9 @@ async function startTimer(currentTimerDuration) {
       } else {
         timerSeconds -= 1;
         rotateAnalogTimerNeedle();
-        rotateAnalogTimerCompletion();
+        rotateAnalogTimerCompletion(timerSeconds, currentTimerType);
       }
-    }, 1000);
+    }, 50);
   })
 }
 
@@ -87,20 +90,46 @@ function resetAnalogTimerNeedle() {
   rotateAnalogTimerNeedle(0)
 }
 
-function setupAnalogTimerCurrentPhaseCompletion(currentTimerDuration) {
-  let timerSeconds = currentTimerDuration * 60;
-  const analogTimerCompletionPhaseSize = 360 / ((workTimes * 2) - 1);
-  analogTimerCompletionStepSize = analogTimerCompletionPhaseSize / timerSeconds;
+function setupAnalogTimerPhases() {
+  const numberOfPhases = (workTimes * 2) - 1;
+  const totalMinutes = (workDuration * workTimes) + (breakDuration * (workTimes - 1));
+  const workPhasesSize = (workDuration * 360) / totalMinutes;
+  const breakPhasesSize = (breakDuration * 360) / totalMinutes
+  analogTimerWorkPhasesStepSize = workPhasesSize / (workDuration * 60);
+  analogTimerBreakPhasesStepSize = breakPhasesSize / (breakDuration * 60);
+
+  let rotation = workPhasesSize;
+  for (let i = 0; i < numberOfPhases; i += 1) {
+    analogTimerPhasesSeparators[i] = document.createElement('div');
+    analogTimerPhasesSeparators[i].className = 'analog-timer-phase-separator';
+    analogTimerPhasesSeparators[i].style.transform = `rotate(${rotation}deg)`;
+    analogTimerCircle.appendChild(analogTimerPhasesSeparators[i]);
+    if (i % 2 === 0) {
+      rotation += breakPhasesSize;
+    } else {
+      rotation += workPhasesSize;
+    }
+  }
 }
 
-function rotateAnalogTimerCompletion() {
-  analogTimerCompletionDegPosition += analogTimerCompletionStepSize;
+function cleanupAnalogTimerPhases() {
+  analogTimerPhasesSeparators.forEach((element) => { element.remove(); });
+  analogTimerPhasesSeparators = [];
+}
+
+function rotateAnalogTimerCompletion(timerSeconds, currentTimerType) {
+  if (currentTimerType === 'work') {
+    analogTimerCompletionDegPosition += analogTimerWorkPhasesStepSize;
+  } else {
+    analogTimerCompletionDegPosition += analogTimerBreakPhasesStepSize;
+  }
   analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), ${analogTimerCompletionDegPosition}deg, transparent ${analogTimerCompletionDegPosition}deg 360deg)`;
 }
 
 function resetAnalogTimerCompletion() {
   analogTimerCompletionDegPosition = 0;
-  analogTimerCompletionStepSize = null;
+  analogTimerWorkPhasesStepSize = null;
+  analogTimerBreakPhasesStepSize = null;
   analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), 0deg, transparent 0deg 360deg)`;
 }
 
@@ -144,6 +173,7 @@ function bindSettingsToForm() {
 }
 
 function getAnalogTimerRefs() {
+  analogTimerCircle = document.getElementById('analog-timer-circle');
   analogTimerNeedle = document.getElementById('analog-timer-needle');
   analogTimerCompletion = document.getElementById('analog-timer-completion');
 }
