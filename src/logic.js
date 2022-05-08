@@ -73,7 +73,7 @@ async function startTimer(currentTimerDuration, currentTimerType) {
         rotateAnalogTimerNeedle();
         rotateAnalogTimerCompletion(timerSeconds, currentTimerType);
       }
-    }, 50);
+    }, 1000);
   })
 }
 
