@@ -4,7 +4,7 @@ const HtmlParser = require('node-html-parser');
 
 if (!fs.existsSync('./dist')) fs.mkdirSync('./dist')
 
-const callback = console.error || 'file done';
+const callback = (error) => error ? console.error(error) : console.log('✔');
 
 fs.copyFile('./src/ding.mp3', './dist/ding.mp3', callback);
 fs.copyFile('./src/style.css', './dist/style.css', callback);
