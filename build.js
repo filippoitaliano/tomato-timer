@@ -4,8 +4,12 @@ const HtmlParser = require('node-html-parser');
 
 if (!fs.existsSync('./dist')) fs.mkdirSync('./dist')
 
-fs.copyFile('./src/ding.mp3', './dist/ding.mp3', console.error);
-fs.copyFile('./src/style.css', './dist/style.css', console.error);
+const callback = console.error || 'file done';
+
+fs.copyFile('./src/ding.mp3', './dist/ding.mp3', callback);
+fs.copyFile('./src/style.css', './dist/style.css', callback);
+fs.copyFile('./src/favicon.ico', './dist/favicon.ico', callback);
+fs.copyFile('./src/timerWorker.js', './dist/timerWorker.js', callback);
 
 const jsCode = fs.readFileSync("./src/logic.js", "utf8");
 const uglifyOptions = { mangle: { toplevel: true }, nameCache: {} };

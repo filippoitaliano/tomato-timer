@@ -1,35 +1,44 @@
 
-let workDuration = 25;
-let workTimes = 3;
-let breakDuration = 5;
+const TIMER_ACTIONS = {
+  START_TIMER: 'start-timer',
+  STEP_TIMER: 'step-timer',
+  END_TIMER: 'end-timer',
+};
 
+const TIMER_TYPES = {
+  WORK_TIMER: 'work-timer',
+  BREAK_TIMER: 'break-timer',
+};
+
+
+let workDuration = 25;
 function setWorkDuration(value) {
   workDuration = value;
   localStorage.setItem('workDuration', value);
 }
 
+let workTimes = 3;
 function setWorkTimes(value) {
   workTimes = value;
   localStorage.setItem('workTimes', value);
 }
 
+let breakDuration = 5;
 function setBreakDuration(value) {
   breakDuration = value;
   localStorage.setItem('breakDuration', value);
 }
 
-let currentTimerIntervalId = null;
 
 let tomatoSessionTimes = null;
 
 let analogTimerCircle = null;
 let analogTimerNeedle = null;
 let analogTimerNeedleDegRotation = 0;
-
 let analogTimerCompletion = null;
+let analogTimerCompletionDegPosition = 0;
 let analogTimerWorkPhasesStepSize = null;
 let analogTimerBreakPhasesStepSize = null;
-let analogTimerCompletionDegPosition = 0;
 let analogTimerPhasesSeparators = [];
 
 let notificationSound = null;
@@ -37,17 +46,20 @@ let notificationSound = null;
 let settingsDialogContent = null;
 let settingsDialogClosedContent = null;
 
+let timerWorker = null;
+
+
 async function startTomatoSession() {
   requestNotificationsPermission();
   tomatoSessionTimes = workTimes;
   setupAnalogTimerPhases();
   while (tomatoSessionTimes !== 0) {
     tomatoSessionTimes -= 1;
-    await startTimer(workDuration, 'work');
+    await startTimer(TIMER_TYPES.WORK_TIMER);
     notificationSound.play();
     new Notification('Time to have a break!');
     if (tomatoSessionTimes !== 0) {
-      await startTimer(breakDuration, 'break');
+      await startTimer(TIMER_TYPES.BREAK_TIMER);
       notificationSound.play();
       if (tomatoSessionTimes === 0) {
         new Notification ('Good job, you finished your pomodoro!')
@@ -58,31 +70,49 @@ async function startTomatoSession() {
   }
 }
 
-function abortTomatoSession() {
-  clearInterval(currentTimerIntervalId);
-  currentTimerIntervalId = null;
+function stopTomatoSession() {
+  stopTimer();
   resetAnalogTimerNeedle();
   resetAnalogTimerCompletion();
   cleanupAnalogTimerPhases();
 }
 
-async function startTimer(currentTimerDuration, currentTimerType) {
+
+async function startTimer(timerType) {
+  let timerSeconds = 0;
+  switch(timerType) {
+    case TIMER_TYPES.WORK_TIMER:
+      timerSeconds = workDuration * 60;
+      break;
+    case TIMER_TYPES.BREAK_TIMER:
+      timerSeconds = breakDuration * 60;
+  }
+
   return new Promise((resolve) => {
-    let timerSeconds = currentTimerDuration * 60;
-    currentTimerIntervalId = setInterval(() => {
-      if (timerSeconds === 0) {
-        clearInterval(currentTimerIntervalId);
-        currentTimerIntervalId = null;
-        resetAnalogTimerNeedle()
-        resolve();
-      } else {
-        timerSeconds -= 1;
-        rotateAnalogTimerNeedle();
-        rotateAnalogTimerCompletion(timerSeconds, currentTimerType);
+    timerWorker = new Worker('timerWorker.js');
+    timerWorker.postMessage({ action: TIMER_ACTIONS.START_TIMER, timerSeconds });
+    timerWorker.onmessage = (event) => {
+      switch (event.data.action) {
+        case TIMER_ACTIONS.STEP_TIMER:
+          rotateAnalogTimerNeedle();
+          rotateAnalogTimerCompletion(timerType);
+          break;
+        case TIMER_ACTIONS.END_TIMER:
+          resetAnalogTimerNeedle();
+          stopTimer();
+          resolve();
       }
-    }, 1000);
+    };
   })
 }
+
+function stopTimer() {
+  if (timerWorker) {
+    timerWorker.terminate();
+    timerWorker = null;
+  }
+}
+
 
 function rotateAnalogTimerNeedle(degRotation = null) {
   if (degRotation != null) {
@@ -96,6 +126,7 @@ function rotateAnalogTimerNeedle(degRotation = null) {
 function resetAnalogTimerNeedle() {
   rotateAnalogTimerNeedle(0)
 }
+
 
 function setupAnalogTimerPhases() {
   const numberOfPhases = (workTimes * 2) - 1;
@@ -124,11 +155,14 @@ function cleanupAnalogTimerPhases() {
   analogTimerPhasesSeparators = [];
 }
 
-function rotateAnalogTimerCompletion(timerSeconds, currentTimerType) {
-  if (currentTimerType === 'work') {
-    analogTimerCompletionDegPosition += analogTimerWorkPhasesStepSize;
-  } else {
-    analogTimerCompletionDegPosition += analogTimerBreakPhasesStepSize;
+
+function rotateAnalogTimerCompletion(timerType) {
+  switch(timerType) {
+    case TIMER_TYPES.WORK_TIMER:
+      analogTimerCompletionDegPosition += analogTimerWorkPhasesStepSize;
+      break;
+    case TIMER_TYPES.BREAK_TIMER:
+      analogTimerCompletionDegPosition += analogTimerBreakPhasesStepSize;
   }
   analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), ${analogTimerCompletionDegPosition}deg, transparent ${analogTimerCompletionDegPosition}deg 360deg)`;
 }
@@ -139,6 +173,7 @@ function resetAnalogTimerCompletion() {
   analogTimerBreakPhasesStepSize = null;
   analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), 0deg, transparent 0deg 360deg)`;
 }
+
 
 function confirmSettingsForm() {
   settingsDialogContent.style.display = 'none';
