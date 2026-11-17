@@ -12,49 +12,59 @@
 
   <body>
     <main class="app">
-      <section class="card dialog">
-        <span class="settings-badge">Filippo</span>
-        <div id="settings-dialog-content">
-          <p class="settings-description">
-            Welcome to the cutest tomato timer app. Take your time to set up the timings!
-          </p>
-          <div class="settings-form">
-            <label class="settings-form-control">
-              <span class="settings-form-control-label">Duration</span>
-              <span class="field">
-                <input type="number" min="1" id="work-duration-input"/>
-                <span class="field-unit">min</span>
-              </span>
-            </label>
-            <label class="settings-form-control">
-              <span class="settings-form-control-label">Break</span>
-              <span class="field">
-                <input type="number" min="1" id="break-duration-input"/>
-                <span class="field-unit">min</span>
-              </span>
-            </label>
-            <label class="settings-form-control">
-              <span class="settings-form-control-label">Times</span>
-              <span class="field">
-                <input type="number" min="1" id="work-times-input"/>
-                <span class="field-unit">×</span>
-              </span>
-            </label>
-            <button class="btn settings-form-save-button wjs" onclick="confirmSettingsForm()">
-              That's ok!
+      <div class="top-row">
+        <section class="card dialog">
+          <span class="settings-badge">Filippo</span>
+          <div id="settings-dialog-content">
+            <p class="settings-description">
+              Welcome to the cutest tomato timer app! Set up the timings.
+            </p>
+            <div class="settings-form">
+              <label class="settings-form-control">
+                <span class="settings-form-control-label">Duration</span>
+                <span class="field">
+                  <input type="number" min="1" id="work-duration-input"/>
+                  <span class="field-unit">min</span>
+                </span>
+              </label>
+              <label class="settings-form-control">
+                <span class="settings-form-control-label">Break</span>
+                <span class="field">
+                  <input type="number" min="1" id="break-duration-input"/>
+                  <span class="field-unit">min</span>
+                </span>
+              </label>
+              <label class="settings-form-control">
+                <span class="settings-form-control-label">Times</span>
+                <span class="field">
+                  <input type="number" min="1" id="work-times-input"/>
+                  <span class="field-unit">×</span>
+                </span>
+              </label>
+              <button class="btn settings-form-save-button wjs" onclick="confirmSettingsForm()">
+                That's ok!
+              </button>
+            </div>
+          </div>
+
+          <div id="settings-dialog-closed-content">
+            <span class="settings-done-emoji" aria-hidden="true">🍅</span>
+            <p class="settings-description">
+              Good luck and have fun!
+            </p>
+            <button class="btn wjs" onclick="showSettingsForm()">
+              Change settings
             </button>
           </div>
-        </div>
-
-        <div id="settings-dialog-closed-content">
-          <p class="settings-description">
-            Good luck and have fun!
-          </p>
-          <button class="btn wjs" onclick="showSettingsForm()">
-            Change settings
-          </button>
-        </div>
-      </section>
+        </section>
+        <section class="card forest">
+          <div class="clock-title">
+            Magic forest
+            <span class="clock-subtitle" id="forest-summary"></span>
+          </div>
+          <svg id="forest-scene" class="forest-scene" viewBox="0 0 360 320" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Your magic forest"></svg>
+        </section>
+      </div>
 
       <section class="card main-content">
         <div class="clock-title">
@@ -89,12 +99,12 @@
         </div>
       </section>
 
-      <section class="card forest">
+
+      <section class="card journal">
         <div class="clock-title">
-          Magic forest
-          <span class="clock-subtitle" id="forest-summary"></span>
+          Journal
+          <span class="clock-subtitle">the last focuses you completed</span>
         </div>
-        <svg id="forest-scene" class="forest-scene" viewBox="0 0 360 320" role="img" aria-label="Your magic forest"></svg>
         <ul id="forest-journal" class="forest-journal"></ul>
       </section>
 
