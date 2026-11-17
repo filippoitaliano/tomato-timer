@@ -31,7 +31,8 @@ function setWorkDuration(value) {
   if (!number) return;
   workDuration = number;
   localStorage.setItem('workDuration', number);
-  onSettingsChanged();
+  renderSessionSummary();
+  renderTimerReadout();
 }
 
 let workTimes = 3;
@@ -40,7 +41,8 @@ function setWorkTimes(value) {
   if (!number) return;
   workTimes = number;
   localStorage.setItem('workTimes', number);
-  onSettingsChanged();
+  renderSessionSummary();
+  renderTimerReadout();
 }
 
 let breakDuration = 5;
@@ -49,7 +51,8 @@ function setBreakDuration(value) {
   if (!number) return;
   breakDuration = number;
   localStorage.setItem('breakDuration', number);
-  onSettingsChanged();
+  renderSessionSummary();
+  renderTimerReadout();
 }
 
 
@@ -58,14 +61,21 @@ let sessionState = SESSION_STATES.IDLE;
 let sessionToggleButton = null;
 let analogTimerWrapper = null;
 
-let timerSegmentsGroup = null;
+let analogTimerCircle = null;
+let analogTimerNeedle = null;
+let analogTimerNeedleDegRotation = 0;
+let analogTimerCompletion = null;
+let analogTimerCompletionDegPosition = 0;
+let analogTimerWorkPhasesStepSize = null;
+let analogTimerBreakPhasesStepSize = null;
+let analogTimerPhasesSeparators = [];
+
 let timerTimeLabel = null;
 let timerPhaseLabel = null;
 let sessionSummaryLabel = null;
-// One entry per focus or break of the session, in order: what the ring draws.
-let timerSegments = [];
-let currentSegmentIndex = -1;
-let currentSegmentElapsed = 0;
+// What the label under the clock says: the timer running and the seconds it has left.
+let currentTimerType = null;
+let currentTimerRemaining = 0;
 
 let notificationSound = null;
 
@@ -95,6 +105,7 @@ function setSessionState(state) {
   sessionState = state;
   sessionToggleButton.textContent = SESSION_TOGGLE_LABELS[state];
   analogTimerWrapper.classList.toggle('paused', state === SESSION_STATES.PAUSED);
+  if (state === SESSION_STATES.IDLE) currentTimerType = null;
   renderTimerReadout();
 }
 
@@ -102,15 +113,14 @@ async function startTomatoSession() {
   requestNotificationsPermission();
   setSessionState(SESSION_STATES.RUNNING);
   tomatoSessionTimes = workTimes;
-  setupTimerSegments();
-  let segmentIndex = 0;
+  setupAnalogTimerPhases();
   while (tomatoSessionTimes !== 0) {
     tomatoSessionTimes -= 1;
-    if (!await startTimer(segmentIndex++)) return;
+    if (!await startTimer(TIMER_TYPES.WORK_TIMER)) return;
     notificationSound.play();
     new Notification('Time to have a break!');
     if (tomatoSessionTimes !== 0) {
-      if (!await startTimer(segmentIndex++)) return;
+      if (!await startTimer(TIMER_TYPES.BREAK_TIMER)) return;
       notificationSound.play();
       if (tomatoSessionTimes === 0) {
         new Notification ('Good job, you finished your pomodoro!')
@@ -136,16 +146,26 @@ function resumeTomatoSession() {
 
 function stopTomatoSession() {
   stopTimer();
-  setupTimerSegments();
   setSessionState(SESSION_STATES.IDLE);
+  resetAnalogTimerNeedle();
+  resetAnalogTimerCompletion();
+  cleanupAnalogTimerPhases();
 }
 
 
-async function startTimer(segmentIndex) {
-  const timerSeconds = timerSegments[segmentIndex].seconds;
-  currentSegmentIndex = segmentIndex;
-  currentSegmentElapsed = 0;
-  renderTimer();
+async function startTimer(timerType) {
+  let timerSeconds = 0;
+  switch(timerType) {
+    case TIMER_TYPES.WORK_TIMER:
+      timerSeconds = workDuration * 60;
+      break;
+    case TIMER_TYPES.BREAK_TIMER:
+      timerSeconds = breakDuration * 60;
+  }
+
+  currentTimerType = timerType;
+  currentTimerRemaining = timerSeconds;
+  renderTimerReadout();
 
   return new Promise((resolve) => {
     settleCurrentTimer = resolve;
@@ -154,10 +174,13 @@ async function startTimer(segmentIndex) {
     timerWorker.onmessage = (event) => {
       switch (event.data.action) {
         case TIMER_ACTIONS.STEP_TIMER:
-          currentSegmentElapsed += 1;
-          renderTimer();
+          rotateAnalogTimerNeedle();
+          rotateAnalogTimerCompletion(timerType);
+          currentTimerRemaining = Math.max(currentTimerRemaining - 1, 0);
+          renderTimerReadout();
           break;
         case TIMER_ACTIONS.END_TIMER:
+          resetAnalogTimerNeedle();
           settleCurrentTimer = null;
           stopTimer();
           resolve(true);
@@ -178,81 +201,66 @@ function stopTimer() {
 }
 
 
-function setupTimerSegments() {
-  timerSegments = [];
-  for (let i = 0; i < workTimes; i += 1) {
-    if (i > 0) timerSegments.push({ type: TIMER_TYPES.BREAK_TIMER, seconds: breakDuration * 60 });
-    timerSegments.push({ type: TIMER_TYPES.WORK_TIMER, seconds: workDuration * 60 });
+function rotateAnalogTimerNeedle(degRotation = null) {
+  if (degRotation != null) {
+    analogTimerNeedleDegRotation = 0;
+  } else {
+    analogTimerNeedleDegRotation = (analogTimerNeedleDegRotation + 6) % 360;
   }
-  currentSegmentIndex = -1;
-  currentSegmentElapsed = 0;
-  drawTimerSegments();
-  renderTimer();
-  renderSessionSummary();
+  analogTimerNeedle.style.transform = `rotate(${analogTimerNeedleDegRotation}deg)`;
 }
 
-const RING_CENTER = 150;
-const RING_RADIUS = 128;
-// Room between two segments, in degrees, so that each focus and break reads on its own.
-const RING_GAP = 3;
-const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
-
-function ringPoint(degrees) {
-  const radians = (degrees * Math.PI) / 180;
-  return `${RING_CENTER + RING_RADIUS * Math.sin(radians)} ${RING_CENTER - RING_RADIUS * Math.cos(radians)}`;
+function resetAnalogTimerNeedle() {
+  rotateAnalogTimerNeedle(0)
 }
 
-// A clockwise arc from `from` to `to`, in degrees from noon. A whole turn is two halves: a single
-// arc whose ends meet draws nothing.
-function ringArc(from, to) {
-  if (to - from >= 359.99) {
-    return `M ${ringPoint(0)} A ${RING_RADIUS} ${RING_RADIUS} 0 1 1 ${ringPoint(180)} A ${RING_RADIUS} ${RING_RADIUS} 0 1 1 ${ringPoint(360)}`;
+
+function setupAnalogTimerPhases() {
+  const numberOfPhases = (workTimes * 2) - 1;
+  const totalMinutes = (workDuration * workTimes) + (breakDuration * (workTimes - 1));
+  const workPhasesSize = (workDuration * 360) / totalMinutes;
+  const breakPhasesSize = (breakDuration * 360) / totalMinutes
+  analogTimerWorkPhasesStepSize = workPhasesSize / (workDuration * 60);
+  analogTimerBreakPhasesStepSize = breakPhasesSize / (breakDuration * 60);
+
+  let rotation = workPhasesSize;
+  for (let i = 0; i < numberOfPhases; i += 1) {
+    analogTimerPhasesSeparators[i] = document.createElement('div');
+    analogTimerPhasesSeparators[i].className = 'analog-timer-phase-separator';
+    analogTimerPhasesSeparators[i].style.transform = `rotate(${rotation}deg)`;
+    analogTimerCircle.appendChild(analogTimerPhasesSeparators[i]);
+    if (i % 2 === 0) {
+      rotation += breakPhasesSize;
+    } else {
+      rotation += workPhasesSize;
+    }
   }
-  const largeArc = to - from > 180 ? 1 : 0;
-  return `M ${ringPoint(from)} A ${RING_RADIUS} ${RING_RADIUS} 0 ${largeArc} 1 ${ringPoint(to)}`;
 }
 
-function createRingPath(arc, className) {
-  const path = document.createElementNS(SVG_NAMESPACE, 'path');
-  path.setAttribute('d', arc);
-  path.setAttribute('pathLength', '1');
-  path.setAttribute('class', className);
-  return path;
+function cleanupAnalogTimerPhases() {
+  analogTimerPhasesSeparators.forEach((element) => { element.remove(); });
+  analogTimerPhasesSeparators = [];
 }
 
-function drawTimerSegments() {
-  timerSegmentsGroup.replaceChildren();
-  const totalSeconds = timerSegments.reduce((sum, segment) => sum + segment.seconds, 0);
-  if (!totalSeconds) return;
-  const gap = timerSegments.length > 1 ? RING_GAP : 0;
-  const available = 360 - gap * timerSegments.length;
 
-  let from = gap / 2;
-  timerSegments.forEach((segment) => {
-    const to = from + (segment.seconds / totalSeconds) * available;
-    const arc = ringArc(from, to);
-    const kind = segment.type === TIMER_TYPES.WORK_TIMER ? 'work' : 'break';
-    timerSegmentsGroup.appendChild(createRingPath(arc, `timer-segment timer-segment-track ${kind}`));
-    segment.fill = createRingPath(arc, `timer-segment timer-segment-fill ${kind}`);
-    timerSegmentsGroup.appendChild(segment.fill);
-    from = to + gap;
-  });
+function rotateAnalogTimerCompletion(timerType) {
+  switch(timerType) {
+    case TIMER_TYPES.WORK_TIMER:
+      analogTimerCompletionDegPosition += analogTimerWorkPhasesStepSize;
+      break;
+    case TIMER_TYPES.BREAK_TIMER:
+      analogTimerCompletionDegPosition += analogTimerBreakPhasesStepSize;
+  }
+  analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), ${analogTimerCompletionDegPosition}deg, transparent ${analogTimerCompletionDegPosition}deg 360deg)`;
 }
 
-function segmentProgress(index) {
-  if (index < currentSegmentIndex) return 1;
-  if (index > currentSegmentIndex) return 0;
-  return Math.min(currentSegmentElapsed / timerSegments[index].seconds, 1);
+function resetAnalogTimerCompletion() {
+  analogTimerCompletionDegPosition = 0;
+  analogTimerWorkPhasesStepSize = null;
+  analogTimerBreakPhasesStepSize = null;
+  analogTimerCompletion.style.background = `conic-gradient(var(--soft-grey), 0deg, transparent 0deg 360deg)`;
 }
 
-function renderTimer() {
-  timerSegments.forEach((segment, index) => {
-    const progress = segmentProgress(index);
-    segment.fill.style.strokeDasharray = `${progress} 1`;
-    segment.fill.classList.toggle('empty', progress === 0);
-  });
-  renderTimerReadout();
-}
 
 function formatClock(seconds) {
   const minutes = Math.floor(seconds / 60);
@@ -260,8 +268,7 @@ function formatClock(seconds) {
 }
 
 function renderTimerReadout() {
-  const segment = timerSegments[currentSegmentIndex];
-  if (sessionState === SESSION_STATES.IDLE || !segment) {
+  if (!currentTimerType) {
     analogTimerWrapper.dataset.phase = 'idle';
     timerTimeLabel.textContent = formatClock(workDuration * 60);
     timerPhaseLabel.textContent = 'Ready';
@@ -269,9 +276,9 @@ function renderTimerReadout() {
     return;
   }
 
-  const isWork = segment.type === TIMER_TYPES.WORK_TIMER;
-  const clock = formatClock(Math.max(segment.seconds - currentSegmentElapsed, 0));
-  let phase = isWork ? `Focus ${currentSegmentIndex / 2 + 1} of ${workTimes}` : 'Break';
+  const isWork = currentTimerType === TIMER_TYPES.WORK_TIMER;
+  const clock = formatClock(currentTimerRemaining);
+  let phase = isWork ? `Focus ${workTimes - tomatoSessionTimes} of ${workTimes}` : 'Break';
   if (sessionState === SESSION_STATES.PAUSED) phase += ' · paused';
   analogTimerWrapper.dataset.phase = isWork ? 'work' : 'break';
   timerTimeLabel.textContent = clock;
@@ -283,14 +290,6 @@ function renderSessionSummary() {
   const times = workTimes > 1 ? `${workTimes} × ${workDuration} min` : `${workDuration} min`;
   const breaks = workTimes > 1 ? ` · ${breakDuration} min breaks` : '';
   sessionSummaryLabel.textContent = times + breaks;
-}
-
-function onSettingsChanged() {
-  if (sessionState === SESSION_STATES.IDLE) {
-    setupTimerSegments();
-  } else {
-    renderSessionSummary();
-  }
 }
 
 
@@ -310,7 +309,7 @@ function loadLocalSettings() {
   breakDuration = readPositiveSetting('breakDuration', breakDuration);
 }
 
-// The inputs hand back strings, and an empty or zero one would leave the ring with nothing to draw.
+// The inputs hand back strings, and an empty or zero one would leave the clock with no phases.
 function toPositiveInteger(value) {
   const number = Math.round(Number(value));
   return number > 0 ? number : null;
@@ -336,7 +335,9 @@ function bindSettingsToForm() {
 
 function getAnalogTimerRefs() {
   analogTimerWrapper = document.querySelector('.analog-timer-wrapper');
-  timerSegmentsGroup = document.getElementById('timer-segments');
+  analogTimerCircle = document.getElementById('analog-timer-circle');
+  analogTimerNeedle = document.getElementById('analog-timer-needle');
+  analogTimerCompletion = document.getElementById('analog-timer-completion');
   timerTimeLabel = document.getElementById('timer-time');
   timerPhaseLabel = document.getElementById('timer-phase');
   sessionSummaryLabel = document.getElementById('session-summary');
@@ -370,7 +371,8 @@ function appInit() {
   getSettingsDialogSectionsRef();
   getSessionControlsRefs();
   loadNotificationSound();
-  setupTimerSegments();
+  renderSessionSummary();
+  renderTimerReadout();
 }
 
 document.addEventListener('DOMContentLoaded', appInit, false);

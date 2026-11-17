@@ -13,14 +13,7 @@
   <body>
     <main class="app">
       <section class="card dialog">
-        <div class="card-header">
-          <div>
-            <h1 class="card-title">Tomato timer</h1>
-            <div class="card-subtitle" id="session-summary"></div>
-          </div>
-          <span class="tag">Filippo</span>
-        </div>
-
+        <span class="settings-badge">Filippo</span>
         <div id="settings-dialog-content">
           <p class="settings-description">
             Welcome to the cutest tomato timer app. Take your time to set up the timings!
@@ -47,7 +40,7 @@
                 <span class="field-unit">×</span>
               </span>
             </label>
-            <button class="btn btn-green settings-form-save-button wjs" onclick="confirmSettingsForm()">
+            <button class="btn settings-form-save-button wjs" onclick="confirmSettingsForm()">
               That's ok!
             </button>
           </div>
@@ -64,17 +57,25 @@
       </section>
 
       <section class="card main-content">
+        <div class="clock-title">
+          Timer
+          <span class="clock-subtitle" id="session-summary"></span>
+        </div>
         <div class="analog-timer-wrapper" data-phase="idle">
-          <svg class="timer-ring" viewBox="0 0 300 300" aria-hidden="true">
-            <g id="timer-segments"></g>
-          </svg>
+          <div class="analog-timer-dial">
+            <div id="analog-timer-circle">
+              <div id="analog-timer-needle"></div>
+            </div>
+            <div id="analog-timer-completion"></div>
+            <div class="analog-timer-hub"></div>
+          </div>
           <div class="timer-readout">
-            <div id="timer-time" class="timer-time">25:00</div>
-            <div id="timer-phase" class="timer-phase">Ready</div>
+            <span id="timer-time" class="timer-time">25:00</span>
+            <span id="timer-phase" class="timer-phase">Ready</span>
           </div>
         </div>
         <div class="clock-controls">
-          <button id="session-toggle-button" class="btn btn-tomato clock-control-button wjs" onclick="toggleTomatoSession()">
+          <button id="session-toggle-button" class="btn clock-control-button wjs" onclick="toggleTomatoSession()">
             Start
           </button>
           <button class="btn clock-control-button wjs" onclick="stopTomatoSession()">
