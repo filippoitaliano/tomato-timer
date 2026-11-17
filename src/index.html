@@ -74,6 +74,11 @@
             <span id="timer-phase" class="timer-phase">Ready</span>
           </div>
         </div>
+        <label class="focus-description">
+          <span class="field field-wide">
+            <input type="text" id="focus-description" maxlength="120" placeholder="What are you working on?"/>
+          </span>
+        </label>
         <div class="clock-controls">
           <button id="session-toggle-button" class="btn clock-control-button wjs" onclick="toggleTomatoSession()">
             Start
@@ -82,6 +87,15 @@
             Abort
           </button>
         </div>
+      </section>
+
+      <section class="card forest">
+        <div class="clock-title">
+          Magic forest
+          <span class="clock-subtitle" id="forest-summary"></span>
+        </div>
+        <svg id="forest-scene" class="forest-scene" viewBox="0 0 360 320" role="img" aria-label="Your magic forest"></svg>
+        <ul id="forest-journal" class="forest-journal"></ul>
       </section>
 
       <footer class="app-footer">

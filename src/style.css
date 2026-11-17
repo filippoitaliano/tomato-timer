@@ -390,3 +390,117 @@ body {
     opacity: 0.5;
   }
 }
+
+/* What the focus is about: it goes with the tree it plants. */
+
+.focus-description {
+  display: block;
+  width: min(360px, calc(100% - 48px));
+  margin: 0 auto 20px;
+}
+
+.field-wide input {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.field-wide input::placeholder {
+  color: var(--dialog-text-color);
+  opacity: 0.45;
+}
+
+/* The magic forest: an island under a night sky that fills as phases are completed. */
+
+.forest {
+  background-color: white;
+  border-radius: 30px;
+  overflow: hidden;
+}
+
+.forest-scene {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: linear-gradient(#2E2A6E, #5A4A9E 55%, #F2A7C3);
+}
+
+.forest-tree,
+.forest-decoration {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.forest-tree:hover {
+  filter: brightness(1.12);
+}
+
+.forest-sprouting {
+  animation: forest-sprout 0.9s var(--bounce) both;
+}
+
+@keyframes forest-sprout {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+.forest-twinkle {
+  animation: forest-twinkle 3s ease-in-out infinite;
+}
+
+@keyframes forest-twinkle {
+  50% { opacity: 0.35; }
+}
+
+.forest-firefly {
+  animation: forest-firefly 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 2px #FFF07A);
+}
+
+@keyframes forest-firefly {
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  50% { transform: translate(4px, -6px); opacity: 0.3; }
+}
+
+.forest-journal {
+  list-style: none;
+  margin: 0;
+  padding: 6px 22px 16px;
+}
+
+.forest-journal:empty {
+  display: none;
+}
+
+.forest-journal li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #E3DDC4;
+  font-size: 0.85rem;
+}
+
+.forest-journal li:last-child {
+  border-bottom: 0;
+}
+
+.journal-description {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journal-meta {
+  flex: none;
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forest-sprouting,
+  .forest-twinkle,
+  .forest-firefly {
+    animation: none;
+  }
+}
