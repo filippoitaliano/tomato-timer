@@ -1,6 +1,12 @@
 const fs = require('fs');
+const { version } = require('./package.json');
 const UglifyJs = require("uglify-js");
 const HtmlParser = require('node-html-parser');
+
+// CalVer `<anno>.<mese>.<build>`, see CLAUDE.md: refuse to ship anything else.
+if (!/^\d{4}\.([1-9]|1[0-2])\.\d+$/.test(version)) {
+  throw new Error(`package.json version "${version}" is not <anno>.<mese>.<build>`);
+}
 
 if (!fs.existsSync('./dist')) fs.mkdirSync('./dist')
 
@@ -29,5 +35,7 @@ elementsWithJs.forEach((element) => {
   const mangledIdentifier = `${mangleMap[identifier]}()`;
   element.setAttribute('onclick', mangledIdentifier);
 });
+
+parsedHtml.getElementById('app-version').set_content(version);
 
 fs.writeFileSync('./dist/index.html', parsedHtml.toString());
