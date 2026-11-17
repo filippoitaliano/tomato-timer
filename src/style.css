@@ -1,90 +1,239 @@
-@import url('https://fonts.googleapis.com/css?family=Raleway');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
 
+/* The same warm, rounded look as the Pomodoro panel of GeobadgeDevEnvironment, which shows this
+   page inside a cream frame: paper background, cards with a darker 3px lip at the bottom, pill
+   buttons that bounce under the mouse. */
 :root {
-  --bg-color: #6ECCBC;
-  --bg-dot-color: #7CD4BD;
-  --btn-color: #04AEA6;
-  --dialog-bg-color: #F5F7E2;
-  --soft-grey: #f7f2f2;
-  --dialog-text-color: #855C25;
+  --paper: #FBF7EE;
+  --card: #FFFFFB;
+  --card-line: #E6DAC0;
+  --ink: #2E2820;
+  --ink-strong: #3B3226;
+  --ink-soft: #4A4033;
+  --cream-button: #F2E6CB;
+  --tomato: #D9544D;
+  --leaf: #3E9B78;
+  --dashed: #E3C08F;
+  --dashed-hover: #D3A464;
+  --tag-bg: #FDEBDC;
+  --tag-line: #F4A261;
+  --tag-ink: #B5562A;
+  --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
 }
 
 body {
-  background: var(--bg-color);
-  background-image: radial-gradient(var(--bg-dot-color) 20%, transparent 0), radial-gradient(var(--bg-dot-color) 20%, transparent 0);
-  background-size: 48px 48px;
-  background-position: 0 0, 24px 24px;
-
-  font-family: 'Raleway', sans-serif;
-  font-weight: 800;
-  color: var(--dialog-text-color);
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse 45% 35% at 12% 6%, rgba(220, 235, 226, 0.8), transparent),
+    radial-gradient(ellipse 45% 35% at 90% 96%, rgba(242, 224, 205, 0.7), transparent),
+    linear-gradient(135deg, #F7F5EE, #F3F1EA 50%, #EDEFE8);
+  background-attachment: fixed;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  color: var(--ink);
 }
 
-button {
-  border: 0;
-  font-family: 'Raleway', sans-serif;
-  font-weight: 800;
-  background-color: var(--btn-color);
-  color: white;
+.app {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.dialog {
-  background-color: var(--dialog-bg-color);
-  padding: 30px 30px;
-  border-radius: 60px;
-  box-shadow: 1px 1px 1px lightgrey;
+/* Cards */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-bottom-width: 3px;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(92, 74, 42, 0.08);
+  padding: 16px 18px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--ink-strong);
+}
+
+.card-subtitle {
+  font-size: 0.75rem;
+  opacity: 0.55;
+  margin-top: 1px;
+}
+
+.tag {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--tag-line);
+  background: var(--tag-bg);
+  color: var(--tag-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Buttons: a coloured pill, dark lip below, a thin light rim above. A veil lightens it under the
+   mouse while it bounces a bit bigger, and darkens it while it is squeezed by a press. */
+
+.btn {
+  --fill: var(--cream-button);
+  --label: var(--ink-soft);
   position: relative;
-  max-width: 600px;
-  margin: 40px auto;
+  height: 34px;
+  padding: 0 18px 2px;
+  border: 0;
+  border-radius: 13px;
+  background-color: var(--fill);
+  color: var(--label);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.18s ease-out;
 }
 
-.dialog .settings-description {
-  font-size: 0.8rem;
-  letter-spacing: 0.2px;
-  line-height: 1.8rem;
-}
-
-.dialog .settings-badge {
-  background-color: #F49800;
-  width: auto;
-  text-align: center;
-  padding: 5px 8px;
+.btn::after {
+  content: '';
   position: absolute;
-  left: 10px;
-  top: -10px;
-  border-radius: 30px;
-  color: #F3FBFE;
+  inset: 0;
+  border-radius: inherit;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.dialog .settings-form {
-  margin-top: 30px;
+.btn:hover {
+  transform: scale(1.08);
+  transition: transform 0.28s var(--bounce);
+}
+
+.btn:hover::after {
+  opacity: 0.3;
+}
+
+.btn:active {
+  transform: scale(0.92);
+  transition: transform 0.08s ease-out;
+}
+
+.btn:active::after {
+  background: black;
+  opacity: 0.1;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--leaf);
+  outline-offset: 2px;
+}
+
+.btn-tomato {
+  --fill: var(--tomato);
+  --label: white;
+}
+
+.btn-green {
+  --fill: var(--leaf);
+  --label: white;
+}
+
+/* Settings */
+
+.settings-description {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 10px 0 0;
+}
+
+.settings-form {
+  margin-top: 16px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  column-gap: 15px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.settings-form-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 
 .settings-form-control-label {
-  position: relative;
-  left: 8px;
-  margin-bottom: 10px;
-  color: var(--dialog-text-color);
+  padding-left: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
 }
 
-.settings-form-control-input-wrapper input {
-  background-color: #ede8d3;
+/* Like the notes of GeobadgeDevEnvironment: a dashed post-it border, solid green while typing. */
+.field {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 10px;
+  border: 1.2px dashed var(--dashed);
+  border-radius: 10px;
+  background: transparent;
+  transition: border-color 0.15s;
+}
+
+.field:hover {
+  border-color: var(--dashed-hover);
+}
+
+.field:focus-within {
+  border-style: solid;
+  border-color: var(--leaf);
+}
+
+.field input {
+  flex: 1;
+  min-width: 0;
   border: 0;
-  padding: 15px;
-  width: 80px;
-  border-radius: 30px;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ink-strong);
   text-align: center;
+  -moz-appearance: textfield;
 }
 
-.settings-form-save-button {
-  border-radius: 30px;
-  width: 85px;
-  height: 30px;
-  align-self: end;
-  justify-self: end;
+.field input::-webkit-outer-spin-button,
+.field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.field-unit {
+  font-size: 0.75rem;
+  opacity: 0.5;
 }
 
 #settings-dialog-content {
@@ -95,113 +244,154 @@ button {
   display: none;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  margin-top: 6px;
 }
 
-.settings-dialog-change-settings-button {
-  border-radius: 30px;
-  width: 130px;
-  height: 30px;
+#settings-dialog-closed-content .settings-description {
+  margin: 0;
 }
+
+@media (max-width: 460px) {
+  .settings-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .settings-form-save-button {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+
+/* Timer: one ring for the whole session, a segment per focus or break, filled clockwise from
+   noon as time goes by. The time left in the current segment sits in the middle. */
 
 .main-content {
-  max-width: 800px;
-  background-color: white;
-  margin: 40px auto;
-  height: 600px;
-  border-radius: 30px;
-  box-shadow: 1px 1px 1px lightgrey;
-}
-
-.clock-title {
-  background-color: var(--dialog-bg-color);
-  border-radius: 30px 30px 0 0;
-  height: 60px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  gap: 18px;
+  padding: 24px 18px 22px;
 }
 
-.clock-wrapper, .analog-timer-wrapper {
+.analog-timer-wrapper {
+  position: relative;
+  width: min(300px, 100%);
+  aspect-ratio: 1;
+}
+
+.timer-ring {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.timer-segment {
+  fill: none;
+  stroke-width: 22;
+}
+
+.timer-segment-track.work {
+  stroke: #F6DAD3;
+}
+
+.timer-segment-track.break {
+  stroke: #D5EBE1;
+}
+
+.timer-segment-fill {
+  stroke-linecap: butt;
+  transition: stroke-dasharray 0.9s linear;
+}
+
+.timer-segment-fill.work {
+  stroke: var(--tomato);
+}
+
+.timer-segment-fill.break {
+  stroke: var(--leaf);
+}
+
+.timer-segment-fill.empty {
+  visibility: hidden;
+}
+
+.timer-readout {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 75%;
-  position: relative;
+  pointer-events: none;
 }
 
-.clock-digital-time {
-  font-size: 100px;
-  color: var(--dialog-text-color);
+.timer-time {
+  font-size: clamp(2.6rem, 14vw, 4.2rem);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-strong);
+  transition: color 0.3s;
+}
+
+.timer-phase {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.analog-timer-wrapper[data-phase="work"] .timer-time {
+  color: var(--tomato);
+}
+
+.analog-timer-wrapper[data-phase="break"] .timer-time {
+  color: var(--leaf);
+}
+
+.analog-timer-wrapper.paused .timer-time,
+.analog-timer-wrapper.paused .timer-segment-fill {
+  animation: paused-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes paused-blink {
+  50% { opacity: 0.3; }
 }
 
 .clock-controls {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  column-gap: 15px;
-  max-width: 200px;
-  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
 
 .clock-control-button {
-  justify-self: center;
-  align-items: center;
-  border-radius: 30px;
-  width: 70px;
-  height: 30px;
-}
-
-#analog-timer-circle {
-  height: 300px;
-  width: 300px;
-  border-radius: 100%;
-  border: solid 10px var(--soft-grey);
-  position: relative;
-}
-
-#analog-timer-needle {
-  height: 130px;
-  width: 2px;
-  background-color: var(--btn-color);
-  position: absolute;
-  top: 20px;
-  right: 150px;
-  transform-origin: 50% 100%;
-  z-index: 1;
-}
-
-.analog-timer-phase-separator {
-  height: 130px;
-  width: 1px;
-  background-color: #C8C8C8;
-  position: absolute;
-  top: 20px;
-  right: 150px;
-  transform-origin: 50% 100%;
-  z-index: 1;
-}
-
-#analog-timer-completion {
-  height: 260px;
-  width: 260px;
-  border-radius: 100%;
-  position: absolute;
-  background: conic-gradient(var(--soft-grey) 0deg, transparent 0deg 360deg);
-  z-index: 0;
-}
-
-.analog-timer-wrapper.paused #analog-timer-needle {
-  animation: paused-needle-blink 1.2s ease-in-out infinite;
-}
-
-@keyframes paused-needle-blink {
-  50% { opacity: 0.2; }
+  min-width: 92px;
 }
 
 .app-footer {
   text-align: center;
   font-size: 0.7rem;
   letter-spacing: 0.2px;
-  color: var(--dialog-bg-color);
-  margin: 0 auto 40px;
+  opacity: 0.45;
+  padding-bottom: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn:hover,
+  .btn:active {
+    transform: none;
+    transition: none;
+  }
+
+  .timer-segment-fill {
+    transition: none;
+  }
+
+  .analog-timer-wrapper.paused .timer-time,
+  .analog-timer-wrapper.paused .timer-segment-fill {
+    animation: none;
+    opacity: 0.5;
+  }
 }
