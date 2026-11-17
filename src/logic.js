@@ -1,8 +1,22 @@
 
 const TIMER_ACTIONS = {
   START_TIMER: 'start-timer',
+  PAUSE_TIMER: 'pause-timer',
+  RESUME_TIMER: 'resume-timer',
   STEP_TIMER: 'step-timer',
   END_TIMER: 'end-timer',
+};
+
+const SESSION_STATES = {
+  IDLE: 'idle',
+  RUNNING: 'running',
+  PAUSED: 'paused',
+};
+
+const SESSION_TOGGLE_LABELS = {
+  [SESSION_STATES.IDLE]: 'Start',
+  [SESSION_STATES.RUNNING]: 'Pause',
+  [SESSION_STATES.PAUSED]: 'Resume',
 };
 
 const TIMER_TYPES = {
@@ -31,6 +45,9 @@ function setBreakDuration(value) {
 
 
 let tomatoSessionTimes = null;
+let sessionState = SESSION_STATES.IDLE;
+let sessionToggleButton = null;
+let analogTimerWrapper = null;
 
 let analogTimerCircle = null;
 let analogTimerNeedle = null;
@@ -47,19 +64,42 @@ let settingsDialogContent = null;
 let settingsDialogClosedContent = null;
 
 let timerWorker = null;
+// Settles the timer that is running, with `false` when it was aborted, so the
+// session loop can stop instead of waiting forever on a terminated worker.
+let settleCurrentTimer = null;
 
+
+function toggleTomatoSession() {
+  switch (sessionState) {
+    case SESSION_STATES.IDLE:
+      startTomatoSession();
+      break;
+    case SESSION_STATES.RUNNING:
+      pauseTomatoSession();
+      break;
+    case SESSION_STATES.PAUSED:
+      resumeTomatoSession();
+  }
+}
+
+function setSessionState(state) {
+  sessionState = state;
+  sessionToggleButton.textContent = SESSION_TOGGLE_LABELS[state];
+  analogTimerWrapper.classList.toggle('paused', state === SESSION_STATES.PAUSED);
+}
 
 async function startTomatoSession() {
   requestNotificationsPermission();
+  setSessionState(SESSION_STATES.RUNNING);
   tomatoSessionTimes = workTimes;
   setupAnalogTimerPhases();
   while (tomatoSessionTimes !== 0) {
     tomatoSessionTimes -= 1;
-    await startTimer(TIMER_TYPES.WORK_TIMER);
+    if (!await startTimer(TIMER_TYPES.WORK_TIMER)) return;
     notificationSound.play();
     new Notification('Time to have a break!');
     if (tomatoSessionTimes !== 0) {
-      await startTimer(TIMER_TYPES.BREAK_TIMER);
+      if (!await startTimer(TIMER_TYPES.BREAK_TIMER)) return;
       notificationSound.play();
       if (tomatoSessionTimes === 0) {
         new Notification ('Good job, you finished your pomodoro!')
@@ -68,10 +108,24 @@ async function startTomatoSession() {
       }
     }
   }
+  stopTomatoSession();
+}
+
+function pauseTomatoSession() {
+  if (!timerWorker) return;
+  timerWorker.postMessage({ action: TIMER_ACTIONS.PAUSE_TIMER });
+  setSessionState(SESSION_STATES.PAUSED);
+}
+
+function resumeTomatoSession() {
+  if (!timerWorker) return;
+  timerWorker.postMessage({ action: TIMER_ACTIONS.RESUME_TIMER });
+  setSessionState(SESSION_STATES.RUNNING);
 }
 
 function stopTomatoSession() {
   stopTimer();
+  setSessionState(SESSION_STATES.IDLE);
   resetAnalogTimerNeedle();
   resetAnalogTimerCompletion();
   cleanupAnalogTimerPhases();
@@ -89,6 +143,7 @@ async function startTimer(timerType) {
   }
 
   return new Promise((resolve) => {
+    settleCurrentTimer = resolve;
     timerWorker = new Worker('timerWorker.js');
     timerWorker.postMessage({ action: TIMER_ACTIONS.START_TIMER, timerSeconds });
     timerWorker.onmessage = (event) => {
@@ -99,8 +154,9 @@ async function startTimer(timerType) {
           break;
         case TIMER_ACTIONS.END_TIMER:
           resetAnalogTimerNeedle();
+          settleCurrentTimer = null;
           stopTimer();
-          resolve();
+          resolve(true);
       }
     };
   })
@@ -110,6 +166,10 @@ function stopTimer() {
   if (timerWorker) {
     timerWorker.terminate();
     timerWorker = null;
+  }
+  if (settleCurrentTimer) {
+    settleCurrentTimer(false);
+    settleCurrentTimer = null;
   }
 }
 
@@ -215,6 +275,7 @@ function bindSettingsToForm() {
 }
 
 function getAnalogTimerRefs() {
+  analogTimerWrapper = document.querySelector('.analog-timer-wrapper');
   analogTimerCircle = document.getElementById('analog-timer-circle');
   analogTimerNeedle = document.getElementById('analog-timer-needle');
   analogTimerCompletion = document.getElementById('analog-timer-completion');
@@ -223,6 +284,10 @@ function getAnalogTimerRefs() {
 function getSettingsDialogSectionsRef() {
   settingsDialogContent = document.getElementById('settings-dialog-content');
   settingsDialogClosedContent = document.getElementById('settings-dialog-closed-content');
+}
+
+function getSessionControlsRefs() {
+  sessionToggleButton = document.getElementById('session-toggle-button');
 }
 
 function loadNotificationSound() {
@@ -242,6 +307,7 @@ function appInit() {
   bindSettingsToForm();
   getAnalogTimerRefs();
   getSettingsDialogSectionsRef();
+  getSessionControlsRefs();
   loadNotificationSound();
 }
 
